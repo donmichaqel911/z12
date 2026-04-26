@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { HOLDINGS, AVAILABLE_USDT, MONTHLY_PERFORMANCE, ACTIVITY } from "@/lib/account";
+import { getAccountData } from "@/lib/account";
 import { fetchMarkets } from "@/lib/markets";
 
 export const revalidate = 30;
@@ -10,6 +10,8 @@ export const revalidate = 30;
  * ניתן לצרוך מכל client-side component.
  */
 export async function GET() {
+  const { holdings: HOLDINGS, availableUsdt, monthlyPct, activity } = getAccountData();
+
   const ids = Object.keys(HOLDINGS).join(",");
   const coins = await fetchMarkets({ ids, per_page: Object.keys(HOLDINGS).length });
 
@@ -38,9 +40,9 @@ export async function GET() {
       totalValue,
       pnlToday,
       pnlPct,
-      availableUsdt: AVAILABLE_USDT,
-      monthlyPct: MONTHLY_PERFORMANCE.pct,
-      activity: ACTIVITY,
+      availableUsdt,
+      monthlyPct,
+      activity,
       ts: Date.now(),
     },
     { headers: { "cache-control": "public, s-maxage=30, stale-while-revalidate=60" } }
