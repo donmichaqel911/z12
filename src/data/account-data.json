@@ -1,0 +1,31 @@
+{
+  "holdings": {
+    "bitcoin": 50,
+    "ethereum": 2.4,
+    "solana": 18.7,
+    "ripple": 2450,
+    "dogecoin": 12000
+  },
+  "availableUsdt": 1240,
+  "monthlyPct": 4.81,
+  "activity": [
+    {
+      "type": "Deposit",
+      "asset": "USDT",
+      "amount": "+500.00",
+      "time": "Today, 09:12"
+    },
+    {
+      "type": "Buy",
+      "asset": "BTC",
+      "amount": "+0.0184",
+      "time": "Yesterday"
+    },
+    {
+      "type": "Stake",
+      "asset": "ETH",
+      "amount": "1.2 → Flexible",
+      "time": "2 days ago"
+    }
+  ]
+}

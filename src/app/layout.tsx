@@ -1,37 +1,67 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Bricolage_Grotesque, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import TopBar from "@/components/TopBar";
+import BottomNav from "@/components/BottomNav";
+import Providers from "@/components/Providers";
+import { Toaster } from "sonner";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Bricolage_Grotesque({
   subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  axes: ["opsz"],
+});
+
+const body = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "WanderDeals – Best Travel Deals & Cheap Flights",
+  title: "zengo — Trade. Earn. Own.",
   description:
-    "Discover the best travel deals on flights, hotels, tours, and more. Compare prices and book your dream vacation with exclusive affiliate deals.",
-  keywords: "travel deals, cheap flights, hotel deals, vacation packages, travel affiliate",
+    "A mobile-first crypto exchange. Spot, perpetuals and earn products with live markets.",
+  applicationName: "zengo",
   openGraph: {
-    title: "WanderDeals – Best Travel Deals & Cheap Flights",
-    description: "Find the best deals on flights, hotels, and tours worldwide.",
+    title: "zengo — Trade. Earn. Own.",
+    description: "Trade 300+ pairs with zero-friction onboarding.",
     type: "website",
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full`}>
-      <body className="min-h-full flex flex-col antialiased">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+    <html
+      lang="en"
+      className={`${display.variable} ${body.variable} ${mono.variable}`}
+    >
+      <body>
+        <Providers>
+          <div className="app-shell">
+            <Toaster theme="dark" position="top-center" />
+            <TopBar />
+            <main className="safe-bottom">{children}</main>
+            <BottomNav />
+          </div>
+        </Providers>
       </body>
     </html>
   );
