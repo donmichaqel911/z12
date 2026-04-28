@@ -8,6 +8,7 @@ import NewsStrip from "@/components/NewsStrip";
 import LivePrices from "@/components/LivePrices";
 import Sparkline from "@/components/Sparkline";
 import ToastButton from "@/components/ToastButton";
+import GetStartedForm from "@/components/GetStartedForm";
 import { fmtPct, fmtPrice, fmtCompact, cx } from "@/lib/format";
 import {
   ArrowUpRight,
@@ -150,23 +151,7 @@ export default async function Home() {
               </p>
 
               {/* email capture */}
-              <form className="mt-8 flex items-center gap-2 max-w-[520px]">
-                <div className="flex-1 h-14 flex items-center px-4 rounded-xl bg-[color:var(--surface)] border border-[color:var(--border)] focus-within:border-[color:var(--border-strong)] transition-colors">
-                  <input
-                    type="email"
-                    placeholder="Email or phone number"
-                    className="bg-transparent outline-none text-[14.5px] flex-1 placeholder:text-[color:var(--text-mute)]"
-                  />
-                </div>
-                <ToastButton
-                  type="submit"
-                  action="Sign up process initiated..."
-                  className="h-14 px-6 rounded-xl bg-[color:var(--brand)] text-black font-semibold text-[14.5px] inline-flex items-center gap-2 hover:brightness-95"
-                >
-                  Get started
-                  <ArrowUpRight size={16} />
-                </ToastButton>
-              </form>
+              <GetStartedForm />
               <div className="mt-4 text-[12px] text-[color:var(--text-mute)]">
                 No trading fees on your first $10,000 · Licensed in 40+
                 jurisdictions

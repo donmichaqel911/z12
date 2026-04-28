@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
 
 export default function LoginPage() {
@@ -28,7 +29,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError("Invalid username or password.");
     } else {
-      router.push("/");
+      router.push("/assets");
       router.refresh();
     }
   }
@@ -57,7 +58,7 @@ export default function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               autoComplete="username"
-              placeholder="admin or user"
+              placeholder="Your username"
               required
               className="w-full h-12 px-4 rounded-xl bg-[color:var(--surface-2)] border border-[color:var(--border)] text-[14.5px] outline-none focus:border-[color:var(--brand)] transition-colors placeholder:text-[color:var(--text-mute)]"
             />
@@ -90,6 +91,16 @@ export default function LoginPage() {
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-[13px] text-[color:var(--text-dim)]">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="text-[color:var(--text)] font-medium hover:text-[color:var(--brand)]"
+          >
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   );

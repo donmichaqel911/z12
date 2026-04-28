@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useSession, signOut } from "next-auth/react";
 
 const mockToast = (action: string) => {
-  toast.success(action, { description: "Will be controllable via dashboard." });
+  toast(action);
 };
 
 const NAV = [
@@ -160,7 +160,7 @@ export default function TopBar() {
                   Log in
                 </Link>
                 <Link
-                  href="/login"
+                  href="/signup"
                   className="h-9 px-4 rounded-lg text-[13px] font-semibold bg-[color:var(--brand)] text-black hover:brightness-95"
                 >
                   Sign up

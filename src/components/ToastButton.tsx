@@ -18,9 +18,7 @@ export default function ToastButton({
   const Comp = as as any;
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    toast.success(action, {
-      description: "Will be controllable via dashboard.",
-    });
+    toast(action);
   };
 
   return (

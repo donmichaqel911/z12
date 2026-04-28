@@ -19,6 +19,7 @@ const handler = withAuth(
 
 export default handler;
 
+// Only protect /assets and /admin — all other pages are public
 export const config = {
-  matcher: ["/((?!login|api/auth|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/assets/:path*", "/admin/:path*"],
 };

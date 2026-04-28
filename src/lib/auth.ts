@@ -1,5 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { supabase } from "./supabase";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,19 +12,40 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) return null;
+
+        // Hardcoded admin/user fallback (env-based)
         if (
-          credentials?.username === "admin" &&
-          credentials?.password === process.env.ADMIN_PASSWORD
+          credentials.username === "admin" &&
+          credentials.password === process.env.ADMIN_PASSWORD
         ) {
-          return { id: "1", name: "Admin", email: "admin@zengo.app", role: "admin" };
+          return { id: "admin", name: "Admin", email: "admin@zengo.app", role: "admin" };
         }
         if (
-          credentials?.username === "user" &&
-          credentials?.password === process.env.USER_PASSWORD
+          credentials.username === "user" &&
+          credentials.password === process.env.USER_PASSWORD
         ) {
-          return { id: "2", name: "User", email: "user@zengo.app", role: "user" };
+          return { id: "user", name: "User", email: "user@zengo.app", role: "user" };
         }
-        return null;
+
+        // Check Supabase users table
+        const { data: user } = await supabase
+          .from("users")
+          .select("id, username, email, password_hash, role")
+          .eq("username", credentials.username)
+          .maybeSingle();
+
+        if (!user) return null;
+
+        const valid = await bcrypt.compare(credentials.password, user.password_hash);
+        if (!valid) return null;
+
+        return {
+          id: user.id,
+          name: user.username,
+          email: user.email,
+          role: user.role,
+        };
       },
     }),
   ],
