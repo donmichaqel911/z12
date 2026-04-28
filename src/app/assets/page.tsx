@@ -1,5 +1,7 @@
 import { fetchMarkets } from "@/lib/markets";
 import { getAccountData } from "@/lib/account";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import {
   Eye,
   ArrowDownToLine,
@@ -11,10 +13,12 @@ import Sparkline from "@/components/Sparkline";
 import ToastButton from "@/components/ToastButton";
 import { cx, fmtPct, fmtPrice } from "@/lib/format";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export default async function AssetsPage() {
-  const { holdings: HOLDINGS, monthlyPct, activity: ACTIVITY } = await getAccountData();
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id ?? "default";
+  const { holdings: HOLDINGS, monthlyPct, activity: ACTIVITY } = await getAccountData(userId);
 
   const ids = Object.keys(HOLDINGS).join(",");
   const coins = await fetchMarkets({ ids, per_page: Object.keys(HOLDINGS).length });
@@ -33,22 +37,23 @@ export default async function AssetsPage() {
   const pnlPct = (pnlToday / Math.max(total - pnlToday, 1)) * 100;
 
   return (
-    <div className="pb-6 lg:pb-16 lg:container-xl">
+    <div className="macro-py lg:container-xl">
       {/* desktop page header */}
-      <div className="desktop-only pt-10 pb-6">
+      <div className="desktop-only pb-8 animate-fade-up stagger-1">
         <div className="kicker">Portfolio</div>
-        <h1 className="display-xl text-[56px] mt-2">Your assets.</h1>
+        <h1 className="display-xl text-[56px] mt-2 tracking-tight">Your assets.</h1>
       </div>
 
       {/* desktop grid: balance hero (8) + quick stats (4) */}
       <div className="lg:grid lg:grid-cols-12 lg:gap-6">
         {/* balance hero */}
-        <section className="px-4 pt-4 lg:px-0 lg:pt-0 lg:col-span-8">
-          <div className="relative overflow-hidden rounded-2xl border border-[color:var(--border)] hero-grad grain dot-grid p-6 lg:p-10">
+        <section className="px-4 pt-4 lg:px-0 lg:pt-0 lg:col-span-8 animate-fade-up stagger-2">
+          <div className="shell-outer">
+            <div className="shell-inner relative hero-grad grain dot-grid p-8 lg:p-12">
             <div className="flex items-center gap-2 text-[10.5px] lg:text-[11px] uppercase tracking-[0.18em] text-[color:var(--text-mute)]">
               Total balance · USD <Eye size={12} />
             </div>
-            <div className="num display-xl text-[44px] lg:text-[72px] mt-2 lg:mt-3">
+            <div className="num display-xl text-[44px] lg:text-[72px] mt-2 lg:mt-3 tracking-tight break-words max-w-full">
               ${total.toLocaleString("en-US", { maximumFractionDigits: 2 })}
             </div>
             <div
@@ -64,18 +69,20 @@ export default async function AssetsPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 lg:gap-3 mt-6 lg:mt-10 lg:max-w-[520px]">
+            <div className="grid grid-cols-4 gap-2 lg:gap-3 mt-8 lg:mt-12 lg:max-w-[520px]">
               <Action label="Deposit" Icon={ArrowDownToLine} accent />
               <Action label="Withdraw" Icon={ArrowUpFromLine} />
               <Action label="Convert" Icon={Repeat} />
               <Action label="Buy" Icon={Plus} />
             </div>
+            </div>
           </div>
         </section>
 
         {/* desktop sidebar stats */}
-        <aside className="desktop-only lg:col-span-4 flex flex-col gap-3">
-          <div className="card p-5">
+        <aside className="desktop-only lg:col-span-4 flex flex-col gap-4 animate-fade-up stagger-3">
+          <div className="shell-outer">
+            <div className="shell-inner p-6">
             <div className="kicker">Allocation</div>
             <div className="mt-3 flex gap-1 h-2 rounded-full overflow-hidden">
               {holdings.map((h, i) => {
@@ -98,7 +105,7 @@ export default async function AssetsPage() {
                 );
               })}
             </div>
-            <div className="mt-4 space-y-2">
+            <div className="mt-5 space-y-3">
               {holdings.map((h, i) => {
                 const pct = (h.value / total) * 100;
                 const hues = [
@@ -127,8 +134,10 @@ export default async function AssetsPage() {
                 );
               })}
             </div>
+            </div>
           </div>
-          <div className="card p-5">
+          <div className="shell-outer">
+            <div className="shell-inner p-6">
             <div className="kicker">This month</div>
             <div className="flex items-baseline gap-2 mt-2">
               <span
@@ -140,16 +149,17 @@ export default async function AssetsPage() {
                 {monthlyPct >= 0 ? "+" : ""}{monthlyPct.toFixed(2)}%
               </span>
             </div>
-            <div className="text-[11.5px] text-[color:var(--text-dim)] mt-1">
+            <div className="text-[11.5px] text-[color:var(--text-dim)] mt-2">
               vs. previous 30-day window
+            </div>
             </div>
           </div>
         </aside>
       </div>
 
       {/* holdings */}
-      <section className="pt-8 lg:pt-12">
-        <div className="px-4 lg:px-0 flex items-baseline justify-between mb-2 lg:mb-4">
+      <section className="pt-12 lg:pt-16 animate-fade-up stagger-4">
+        <div className="px-4 lg:px-0 flex items-baseline justify-between mb-4 lg:mb-6">
           <div>
             <div className="kicker">Portfolio</div>
             <h2 className="display-md text-[18px] lg:text-[24px] mt-1">
@@ -161,20 +171,23 @@ export default async function AssetsPage() {
           </span>
         </div>
 
-        {/* desktop table header */}
-        <div className="hidden lg:grid grid-cols-[minmax(200px,1.3fr)_1fr_1fr_110px_140px] gap-4 px-5 py-3 hairline-b text-[11px] uppercase tracking-[0.16em] text-[color:var(--text-mute)] card-flat rounded-t-xl">
-          <div>Asset</div>
-          <div className="text-right">Amount</div>
-          <div className="text-right">Price</div>
-          <div className="text-right">7d</div>
-          <div className="text-right">Value</div>
-        </div>
+        <div className="shell-outer">
+          <div className="shell-inner">
+            {/* desktop table header */}
+            <div className="hidden lg:grid grid-cols-[minmax(200px,1.3fr)_1fr_1fr_110px_140px] gap-4 px-6 py-4 hairline-b text-[11px] uppercase tracking-[0.16em] text-[color:var(--text-mute)]">
+              <div>Asset</div>
+              <div className="text-right">Amount</div>
+              <div className="text-right">Price</div>
+              <div className="text-right">7d</div>
+              <div className="text-right">Value</div>
+            </div>
 
-        <div className="row-divide lg:card-flat lg:rounded-b-xl lg:overflow-hidden">
-          {holdings.map(({ coin, amount, value }) => {
-            const up = coin.price_change_percentage_24h >= 0;
-            return (
-              <div key={coin.id}>
+            <div className="row-divide">
+              {holdings.map(({ coin, amount, value }, index) => {
+                const up = coin.price_change_percentage_24h >= 0;
+                const staggerClass = `stagger-${Math.min(index + 1, 5)}`;
+                return (
+                  <div key={coin.id} className={`animate-fade-up ${staggerClass}`}>
                 {/* mobile */}
                 <div className="mobile-only flex items-center gap-3 px-4 py-3.5">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -219,8 +232,8 @@ export default async function AssetsPage() {
                 </div>
 
                 {/* desktop */}
-                <div className="hidden lg:grid grid-cols-[minmax(200px,1.3fr)_1fr_1fr_110px_140px] gap-4 px-5 py-4 items-center hover:bg-[color:var(--surface-2)]/50 transition-colors">
-                  <div className="flex items-center gap-3">
+                <div className="hidden lg:grid grid-cols-[minmax(200px,1.3fr)_1fr_1fr_110px_140px] gap-4 px-6 py-5 items-center hover:bg-[color:var(--surface-2)]/40 transition-colors duration-500 ease-spring">
+                  <div className="flex items-center gap-4">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={coin.image}
@@ -272,17 +285,20 @@ export default async function AssetsPage() {
               </div>
             );
           })}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* activity */}
-      <section className="px-4 pt-8 lg:px-0 lg:pt-12">
+      <section className="px-4 pt-12 lg:px-0 lg:pt-16 animate-fade-up stagger-5 pb-10">
         <div className="kicker">Ledger</div>
-        <h2 className="display-md text-[18px] lg:text-[24px] mt-1 mb-3 lg:mb-5">
+        <h2 className="display-md text-[18px] lg:text-[24px] mt-1 mb-4 lg:mb-6">
           Recent activity
         </h2>
-        <div className="row-divide card overflow-hidden">
-          {ACTIVITY.map((a, i) => (
+        <div className="shell-outer">
+          <div className="shell-inner row-divide">
+            {ACTIVITY.map((a, i) => (
             <Activity
               key={i}
               type={a.type}
@@ -290,7 +306,8 @@ export default async function AssetsPage() {
               amount={a.amount}
               time={a.time}
             />
-          ))}
+            ))}
+          </div>
         </div>
       </section>
     </div>
@@ -307,18 +324,20 @@ function Action({
   accent?: boolean;
 }) {
   return (
-    <ToastButton action={`${label} dialog opening...`} className="flex flex-col items-center gap-2">
+    <ToastButton action={`${label} dialog opening...`} className="group flex flex-col items-center gap-3 active:scale-[0.96] transition-transform duration-500 ease-spring">
       <div
         className={cx(
-          "w-11 h-11 lg:w-14 lg:h-14 rounded-full grid place-items-center border transition-transform hover:scale-105",
+          "w-12 h-12 lg:w-16 lg:h-16 rounded-full grid place-items-center border border-[color:var(--border)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-500 ease-spring group-hover:scale-[1.03] group-active:scale-[0.98]",
           accent
-            ? "bg-[color:var(--brand)] text-black border-transparent"
-            : "bg-[color:var(--surface-2)] text-[color:var(--text)] border-[color:var(--border)]"
+            ? "bg-[color:var(--brand)] text-black border-transparent shadow-[0_0_24px_rgba(215,254,75,0.15)]"
+            : "bg-black/20 text-[color:var(--text)]"
         )}
       >
-        <Icon size={17} strokeWidth={2.1} />
+        <div className="transition-transform duration-500 ease-spring group-hover:scale-110">
+          <Icon size={18} strokeWidth={1.5} />
+        </div>
       </div>
-      <span className="text-[11px] lg:text-[12.5px] text-[color:var(--text-2)]">
+      <span className="text-[11px] lg:text-[12.5px] font-medium tracking-wide text-[color:var(--text-2)] transition-colors duration-300 group-hover:text-white">
         {label}
       </span>
     </ToastButton>

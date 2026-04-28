@@ -14,7 +14,7 @@ export type AccountData = {
   activity: ActivityEntry[];
 };
 
-const DEFAULTS: AccountData = {
+export const DEFAULTS: AccountData = {
   holdings: {
     bitcoin: 0.12483,
     ethereum: 2.4,
@@ -31,15 +31,19 @@ const DEFAULTS: AccountData = {
   ],
 };
 
-export async function getAccountData(): Promise<AccountData> {
+/** Fetch a specific user's account data. Auto-initialises if first login. */
+export async function getAccountData(userId: string): Promise<AccountData> {
   try {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("account_data")
       .select("*")
-      .eq("id", "default")
-      .single();
+      .eq("id", userId)
+      .maybeSingle();
 
-    if (error || !data) return { ...DEFAULTS };
+    if (!data) {
+      await initUserAccount(userId);
+      return { ...DEFAULTS };
+    }
 
     return {
       holdings: (data.holdings as Record<string, number>) ?? DEFAULTS.holdings,
@@ -52,13 +56,29 @@ export async function getAccountData(): Promise<AccountData> {
   }
 }
 
-export async function saveAccountData(data: AccountData): Promise<void> {
+/** Persist a user's account data. */
+export async function saveAccountData(userId: string, data: AccountData): Promise<void> {
   await supabase.from("account_data").upsert({
-    id: "default",
+    id: userId,
     holdings: data.holdings,
     available_usdt: data.availableUsdt,
     monthly_pct: data.monthlyPct,
     activity: data.activity,
     updated_at: new Date().toISOString(),
   });
+}
+
+/** Create a fresh account row for a brand-new user (no-op if already exists). */
+export async function initUserAccount(userId: string): Promise<void> {
+  await supabase.from("account_data").upsert(
+    {
+      id: userId,
+      holdings: DEFAULTS.holdings,
+      available_usdt: DEFAULTS.availableUsdt,
+      monthly_pct: DEFAULTS.monthlyPct,
+      activity: DEFAULTS.activity,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id", ignoreDuplicates: true }
+  );
 }

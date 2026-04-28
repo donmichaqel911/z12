@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getAccountData } from "@/lib/account";
 import { fetchMarkets } from "@/lib/markets";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
-/**
- * GET /api/account
- * מחזיר את מצב החשבון המלא — יתרות, פעילות, ביצועים.
- * ניתן לצרוך מכל client-side component.
- */
 export async function GET() {
-  const { holdings: HOLDINGS, availableUsdt, monthlyPct, activity } = await getAccountData();
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+  const { holdings: HOLDINGS, availableUsdt, monthlyPct, activity } = await getAccountData(userId);
 
   const ids = Object.keys(HOLDINGS).join(",");
   const coins = await fetchMarkets({ ids, per_page: Object.keys(HOLDINGS).length });
@@ -34,17 +37,14 @@ export async function GET() {
   const pnlToday = holdings.reduce((s, h) => s + h.price_change_24h * h.amount, 0);
   const pnlPct = (pnlToday / Math.max(totalValue - pnlToday, 1)) * 100;
 
-  return NextResponse.json(
-    {
-      holdings,
-      totalValue,
-      pnlToday,
-      pnlPct,
-      availableUsdt,
-      monthlyPct,
-      activity,
-      ts: Date.now(),
-    },
-    { headers: { "cache-control": "public, s-maxage=30, stale-while-revalidate=60" } }
-  );
+  return NextResponse.json({
+    holdings,
+    totalValue,
+    pnlToday,
+    pnlPct,
+    availableUsdt,
+    monthlyPct,
+    activity,
+    ts: Date.now(),
+  });
 }

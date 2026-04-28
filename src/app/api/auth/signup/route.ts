@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { initUserAccount } from "@/lib/account";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -30,16 +31,18 @@ export async function POST(req: NextRequest) {
 
   const password_hash = await bcrypt.hash(password, 12);
 
-  const { error } = await supabase.from("users").insert({
-    username,
-    email: email?.trim() || null,
-    password_hash,
-    role: "user",
-  });
+  const { data: newUser, error } = await supabase
+    .from("users")
+    .insert({ username, email: email?.trim() || null, password_hash, role: "user" })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !newUser) {
     return NextResponse.json({ error: "Failed to create account. Please try again." }, { status: 500 });
   }
+
+  // Create a fresh portfolio for the new user
+  await initUserAccount(newUser.id);
 
   return NextResponse.json({ ok: true });
 }

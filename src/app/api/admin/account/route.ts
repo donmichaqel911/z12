@@ -3,28 +3,29 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getAccountData, saveAccountData, AccountData } from "@/lib/account";
 
-function requireAdmin() {
-  return getServerSession(authOptions).then((session) => {
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    return null;
-  });
+async function requireAdmin() {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
-  return NextResponse.json(await getAccountData());
+  const userId = req.nextUrl.searchParams.get("userId") || "admin";
+  return NextResponse.json(await getAccountData(userId));
 }
 
 export async function POST(req: NextRequest) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
+  const userId = req.nextUrl.searchParams.get("userId") || "admin";
   const body = (await req.json()) as AccountData;
-  await saveAccountData(body);
+  await saveAccountData(userId, body);
 
   return NextResponse.json({ ok: true });
 }

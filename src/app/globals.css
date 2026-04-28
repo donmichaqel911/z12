@@ -384,3 +384,48 @@ body {
   background-size: 16px 16px;
   background-position: -8px -8px;
 }
+
+/* HIGH-END VISUAL DESIGN UTILITIES */
+
+.ease-spring {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+
+/* Double Bezel Card Classes */
+.shell-outer {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 4px;
+  border-radius: 2rem;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.shell-inner {
+  background: var(--surface);
+  border-radius: calc(2rem - 4px);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+

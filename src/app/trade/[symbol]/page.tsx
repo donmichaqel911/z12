@@ -1,5 +1,7 @@
 import { fetchCoin, fetchMarkets } from "@/lib/markets";
 import { getAccountData } from "@/lib/account";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import TradeChart from "@/components/TradeChart";
 import OrderBook from "@/components/OrderBook";
@@ -9,7 +11,7 @@ import { fmtPct, fmtPrice, fmtCompact, cx } from "@/lib/format";
 import Link from "next/link";
 import { ChevronLeft, Star, MoreHorizontal } from "lucide-react";
 
-export const revalidate = 20;
+export const dynamic = "force-dynamic";
 
 export default async function TradePage({
   params,
@@ -17,9 +19,11 @@ export default async function TradePage({
   params: Promise<{ symbol: string }>;
 }) {
   const { symbol } = await params;
+  const session = await getServerSession(authOptions);
   const coin = await fetchCoin(symbol);
   if (!coin) notFound();
-  const { availableUsdt } = await getAccountData();
+  const userId = session?.user?.id;
+  const { availableUsdt } = userId ? await getAccountData(userId) : { availableUsdt: 0 };
 
   const related = await fetchMarkets({ per_page: 8 });
   const up = coin.price_change_percentage_24h >= 0;

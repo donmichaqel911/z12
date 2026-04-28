@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null;
 
-        // Hardcoded admin/user fallback (env-based)
+        // Hardcoded admin / user (env-based fallback)
         if (
           credentials.username === "admin" &&
           credentials.password === process.env.ADMIN_PASSWORD
@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
           return { id: "user", name: "User", email: "user@zengo.app", role: "user" };
         }
 
-        // Check Supabase users table
+        // Supabase users table
         const { data: user } = await supabase
           .from("users")
           .select("id, username, email, password_hash, role")
@@ -51,11 +51,17 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     jwt({ token, user }) {
-      if (user) token.role = user.role;
+      if (user) {
+        token.role = user.role;
+        token.id = user.id; // store so session can expose it
+      }
       return token;
     },
     session({ session, token }) {
-      if (session.user) session.user.role = token.role;
+      if (session.user) {
+        session.user.role = token.role;
+        session.user.id = token.id ?? token.sub; // sub is set by NextAuth from user.id
+      }
       return session;
     },
   },
