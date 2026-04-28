@@ -16,7 +16,7 @@ export async function GET() {
   const denied = await requireAdmin();
   if (denied) return denied;
 
-  return NextResponse.json(getAccountData());
+  return NextResponse.json(await getAccountData());
 }
 
 export async function POST(req: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   if (denied) return denied;
 
   const body = (await req.json()) as AccountData;
-  saveAccountData(body);
+  await saveAccountData(body);
 
   return NextResponse.json({ ok: true });
 }

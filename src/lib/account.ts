@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+import { supabase } from "./supabase";
 
 export type ActivityEntry = {
   type: string;   // "Deposit" | "Buy" | "Sell" | "Stake" | "Withdraw"
@@ -32,23 +31,34 @@ const DEFAULTS: AccountData = {
   ],
 };
 
-const DATA_PATH = path.join(process.cwd(), "src/data/account-data.json");
-
-/**
- * Reads account data from disk (admin overrides), falling back to DEFAULTS.
- * Call this inside server component / API route bodies — not at module level.
- */
-export function getAccountData(): AccountData {
+export async function getAccountData(): Promise<AccountData> {
   try {
-    const raw = fs.readFileSync(DATA_PATH, "utf-8");
-    return { ...DEFAULTS, ...JSON.parse(raw) };
+    const { data, error } = await supabase
+      .from("account_data")
+      .select("*")
+      .eq("id", "default")
+      .single();
+
+    if (error || !data) return { ...DEFAULTS };
+
+    return {
+      holdings: (data.holdings as Record<string, number>) ?? DEFAULTS.holdings,
+      availableUsdt: Number(data.available_usdt) ?? DEFAULTS.availableUsdt,
+      monthlyPct: Number(data.monthly_pct) ?? DEFAULTS.monthlyPct,
+      activity: (data.activity as ActivityEntry[]) ?? DEFAULTS.activity,
+    };
   } catch {
     return { ...DEFAULTS };
   }
 }
 
-export function saveAccountData(data: AccountData): void {
-  const dir = path.dirname(DATA_PATH);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
+export async function saveAccountData(data: AccountData): Promise<void> {
+  await supabase.from("account_data").upsert({
+    id: "default",
+    holdings: data.holdings,
+    available_usdt: data.availableUsdt,
+    monthly_pct: data.monthlyPct,
+    activity: data.activity,
+    updated_at: new Date().toISOString(),
+  });
 }

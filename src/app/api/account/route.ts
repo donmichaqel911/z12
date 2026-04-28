@@ -10,7 +10,7 @@ export const revalidate = 30;
  * ניתן לצרוך מכל client-side component.
  */
 export async function GET() {
-  const { holdings: HOLDINGS, availableUsdt, monthlyPct, activity } = getAccountData();
+  const { holdings: HOLDINGS, availableUsdt, monthlyPct, activity } = await getAccountData();
 
   const ids = Object.keys(HOLDINGS).join(",");
   const coins = await fetchMarkets({ ids, per_page: Object.keys(HOLDINGS).length });

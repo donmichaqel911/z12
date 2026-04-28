@@ -14,7 +14,7 @@ import { cx, fmtPct, fmtPrice } from "@/lib/format";
 export const revalidate = 30;
 
 export default async function AssetsPage() {
-  const { holdings: HOLDINGS, monthlyPct, activity: ACTIVITY } = getAccountData();
+  const { holdings: HOLDINGS, monthlyPct, activity: ACTIVITY } = await getAccountData();
 
   const ids = Object.keys(HOLDINGS).join(",");
   const coins = await fetchMarkets({ ids, per_page: Object.keys(HOLDINGS).length });

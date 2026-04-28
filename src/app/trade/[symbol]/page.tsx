@@ -19,7 +19,7 @@ export default async function TradePage({
   const { symbol } = await params;
   const coin = await fetchCoin(symbol);
   if (!coin) notFound();
-  const { availableUsdt } = getAccountData();
+  const { availableUsdt } = await getAccountData();
 
   const related = await fetchMarkets({ per_page: 8 });
   const up = coin.price_change_percentage_24h >= 0;
